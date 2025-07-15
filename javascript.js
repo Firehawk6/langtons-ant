@@ -12,8 +12,8 @@ const COLORS = {
         ant: "#00eaff"
     },
     "Minic119's": {
-        bg: "#0a0e1a", // deep space blue-black
-        cell: "#d0d3d6", // starship hull gray
+        bg: "#13dcfa", // deep space blue-black
+        cell: "#f90018", // starship hull gray
         ant: "#00ffea" // lightsaber blue-green
     }
 };
