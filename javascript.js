@@ -55,23 +55,23 @@ function stepAnts() {
         else if (ant.dir === 2) ant.y++;
         else if (ant.dir === 3) ant.x--;
     }
-    // Check for collisions and add a new ant at a random position for each collision
+    // Check for collisions and add at most one new ant at a random position per step
     const positions = new Map(); // key: "x,y", value: [ant indices]
     ants.forEach((ant, i) => {
         const k = key(ant.x, ant.y);
         if (!positions.has(k)) positions.set(k, []);
         positions.get(k).push(i);
     });
-    let newAnts = [];
+    let spawned = false;
     for (const [k, idxs] of positions.entries()) {
-        if (idxs.length > 1) {
+        if (idxs.length > 1 && !spawned) {
             // Add a new ant at a random position (within -100 to 100)
             const randX = Math.floor(Math.random() * 201) - 100;
             const randY = Math.floor(Math.random() * 201) - 100;
-            newAnts.push({ x: randX, y: randY, dir: randomDir() });
+            ants.push({ x: randX, y: randY, dir: randomDir() });
+            spawned = true;
         }
     }
-    ants.push(...newAnts);
 }
 
 function reset() {
@@ -80,8 +80,24 @@ function reset() {
     const count = Math.max(1, Math.min(100, parseInt(antCountInput.value) || 1));
     const centerX = 0;
     const centerY = 0;
+    const used = new Set();
+    let tries = 0;
     for (let i = 0; i < count; ++i) {
-        ants.push({ x: centerX, y: centerY, dir: randomDir() });
+        let placed = false;
+        while (!placed && tries < 1000) {
+            // Random point within 20-block radius
+            const angle = Math.random() * 2 * Math.PI;
+            const radius = Math.floor(Math.random() * 21); // 0..20
+            const x = centerX + Math.round(Math.cos(angle) * radius);
+            const y = centerY + Math.round(Math.sin(angle) * radius);
+            const k = key(x, y);
+            if (!used.has(k)) {
+                ants.push({ x, y, dir: randomDir() });
+                used.add(k);
+                placed = true;
+            }
+            tries++;
+        }
     }
     offsetX = canvas.width / 2;
     offsetY = canvas.height / 2;
