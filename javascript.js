@@ -16,7 +16,7 @@ let theme = "classic";
 
 // --- STATE ---
 let grid = new Map(); 
-let ant = { x: 0, y: 0, dir: 0 }; 
+let ants = []; // Array of { x, y, dir }
 let running = false;
 let speed = 60; 
 let animationFrame;
@@ -34,27 +34,54 @@ const stepBtn = document.getElementById("step-btn");
 const resetBtn = document.getElementById("reset-btn");
 const speedSlider = document.getElementById("speed-slider");
 const themeSelect = document.getElementById("theme-select");
+const antCountInput = document.getElementById("ant-count");
 
 // --- HELPERS ---
 function key(x, y) { return `${x},${y}`; }
 function parseKey(k) { const [x, y] = k.split(",").map(Number); return { x, y }; }
+function randomDir() { return Math.floor(Math.random() * 4); }
 
 // --- SIMULATION LOGIC ---
-function stepAnt() {
-    const k = key(ant.x, ant.y);
-    const state = grid.get(k) || 0;
-    ant.dir = (ant.dir + (state === 0 ? 1 : 3)) % 4;
-    grid.set(k, state === 0 ? 1 : 0);
-    // Move forward
-    if (ant.dir === 0) ant.y--;
-    else if (ant.dir === 1) ant.x++;
-    else if (ant.dir === 2) ant.y++;
-    else if (ant.dir === 3) ant.x--;
+function stepAnts() {
+    // Move all ants
+    for (let ant of ants) {
+        const k = key(ant.x, ant.y);
+        const state = grid.get(k) || 0;
+        ant.dir = (ant.dir + (state === 0 ? 1 : 3)) % 4;
+        grid.set(k, state === 0 ? 1 : 0);
+        // Move forward
+        if (ant.dir === 0) ant.y--;
+        else if (ant.dir === 1) ant.x++;
+        else if (ant.dir === 2) ant.y++;
+        else if (ant.dir === 3) ant.x--;
+    }
+    // Check for collisions and multiply
+    const positions = new Map(); // key: "x,y", value: [ant indices]
+    ants.forEach((ant, i) => {
+        const k = key(ant.x, ant.y);
+        if (!positions.has(k)) positions.set(k, []);
+        positions.get(k).push(i);
+    });
+    let newAnts = [];
+    for (const [k, idxs] of positions.entries()) {
+        if (idxs.length > 1) {
+            // Add a new ant for each collision (one per collision event)
+            const { x, y } = parseKey(k);
+            newAnts.push({ x, y, dir: randomDir() });
+        }
+    }
+    ants.push(...newAnts);
 }
 
 function reset() {
     grid.clear();
-    ant = { x: 0, y: 0, dir: 0 };
+    ants = [];
+    const count = Math.max(1, Math.min(100, parseInt(antCountInput.value) || 1));
+    const centerX = 0;
+    const centerY = 0;
+    for (let i = 0; i < count; ++i) {
+        ants.push({ x: centerX, y: centerY, dir: randomDir() });
+    }
     offsetX = canvas.width / 2;
     offsetY = canvas.height / 2;
     zoom = 1;
@@ -86,18 +113,20 @@ function draw() {
         }
     }
 
-    // Draw ant
-    ctx.save();
-    ctx.translate(ant.x * cellSize + cellSize / 2, ant.y * cellSize + cellSize / 2);
-    ctx.rotate((Math.PI / 2) * ant.dir);
-    ctx.fillStyle = COLORS[theme].ant;
-    ctx.beginPath();
-    ctx.moveTo(0, -cellSize * 0.4);
-    ctx.lineTo(cellSize * 0.3, cellSize * 0.4);
-    ctx.lineTo(-cellSize * 0.3, cellSize * 0.4);
-    ctx.closePath();
-    ctx.fill();
-    ctx.restore();
+    // Draw all ants
+    for (const ant of ants) {
+        ctx.save();
+        ctx.translate(ant.x * cellSize + cellSize / 2, ant.y * cellSize + cellSize / 2);
+        ctx.rotate((Math.PI / 2) * ant.dir);
+        ctx.fillStyle = COLORS[theme].ant;
+        ctx.beginPath();
+        ctx.moveTo(0, -cellSize * 0.4);
+        ctx.lineTo(cellSize * 0.3, cellSize * 0.4);
+        ctx.lineTo(-cellSize * 0.3, cellSize * 0.4);
+        ctx.closePath();
+        ctx.fill();
+        ctx.restore();
+    }
 
     ctx.restore();
 }
@@ -105,7 +134,7 @@ function draw() {
 // --- ANIMATION LOOP ---
 function animate() {
     for (let i = 0; i < Math.max(1, Math.floor(speed / 60)); i++) {
-        stepAnt();
+        stepAnts();
     }
     draw();
     if (running) {
@@ -122,7 +151,7 @@ playBtn.onclick = () => {
 };
 stepBtn.onclick = () => {
     if (!running) {
-        stepAnt();
+        stepAnts();
         draw();
     }
 };
@@ -137,6 +166,9 @@ speedSlider.oninput = () => {
 themeSelect.onchange = () => {
     theme = themeSelect.value;
     draw();
+};
+antCountInput.onchange = () => {
+    reset();
 };
 
 // --- ZOOM & PAN ---
