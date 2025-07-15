@@ -55,7 +55,7 @@ function stepAnts() {
         else if (ant.dir === 2) ant.y++;
         else if (ant.dir === 3) ant.x--;
     }
-    // Check for collisions and multiply
+    // Check for collisions and add a new ant at a random position for each collision
     const positions = new Map(); // key: "x,y", value: [ant indices]
     ants.forEach((ant, i) => {
         const k = key(ant.x, ant.y);
@@ -65,9 +65,10 @@ function stepAnts() {
     let newAnts = [];
     for (const [k, idxs] of positions.entries()) {
         if (idxs.length > 1) {
-            // Add a new ant for each collision (one per collision event)
-            const { x, y } = parseKey(k);
-            newAnts.push({ x, y, dir: randomDir() });
+            // Add a new ant at a random position (within -100 to 100)
+            const randX = Math.floor(Math.random() * 201) - 100;
+            const randY = Math.floor(Math.random() * 201) - 100;
+            newAnts.push({ x: randX, y: randY, dir: randomDir() });
         }
     }
     ants.push(...newAnts);
