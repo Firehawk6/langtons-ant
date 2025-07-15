@@ -12,9 +12,9 @@ const COLORS = {
         ant: "#00eaff"
     },
     "Minic119's": {
-        bg: "#13dcfa", 
-        cell: "#f90018", 
-        ant: "#00ffea"
+        bg: "#0a0e1a", // deep space blue-black
+        cell: "#d0d3d6", // starship hull gray
+        ant: "#00ffea" // lightsaber blue-green
     }
 };
 let theme = "classic";
@@ -41,6 +41,7 @@ const resetBtn = document.getElementById("reset-btn");
 const speedSlider = document.getElementById("speed-slider");
 const themeSelect = document.getElementById("theme-select");
 const antCountInput = document.getElementById("ant-count");
+const maxAntsInput = document.getElementById("max-ants");
 
 // --- HELPERS ---
 function key(x, y) { return `${x},${y}`; }
@@ -69,14 +70,17 @@ function stepAnts() {
         positions.get(k).push(i);
     });
     let spawned = false;
+    let maxAnts = parseInt(maxAntsInput.value) || 0;
     for (const [k, idxs] of positions.entries()) {
         if (idxs.length > 1 && !spawned) {
-            // Add a new ant at a random position within current spawnRadius
-            const randX = Math.floor(Math.random() * (2 * spawnRadius + 1)) - spawnRadius;
-            const randY = Math.floor(Math.random() * (2 * spawnRadius + 1)) - spawnRadius;
-            ants.push({ x: randX, y: randY, dir: randomDir() });
+            if (maxAnts === 0 || ants.length < maxAnts) {
+                // Add a new ant at a random position within current spawnRadius
+                const randX = Math.floor(Math.random() * (2 * spawnRadius + 1)) - spawnRadius;
+                const randY = Math.floor(Math.random() * (2 * spawnRadius + 1)) - spawnRadius;
+                ants.push({ x: randX, y: randY, dir: randomDir() });
+                spawnRadius += 2; // Increase spawn radius slowly
+            }
             spawned = true;
-            spawnRadius += 2; // Increase spawn radius slowly
         }
     }
 }
@@ -195,6 +199,7 @@ themeSelect.onchange = () => {
 antCountInput.onchange = () => {
     reset();
 };
+maxAntsInput.onchange = () => { reset(); };
 
 // --- ZOOM & PAN ---
 let dragging = false, lastX = 0, lastY = 0;
