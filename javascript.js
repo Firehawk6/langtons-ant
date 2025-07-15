@@ -23,6 +23,7 @@ let animationFrame;
 let cellSize = CELL_SIZE;
 let offsetX = 0, offsetY = 0; 
 let zoom = 1;
+let spawnRadius = 100;
 
 // --- CANVAS SETUP ---
 const canvas = document.getElementById("ant-canvas");
@@ -65,11 +66,12 @@ function stepAnts() {
     let spawned = false;
     for (const [k, idxs] of positions.entries()) {
         if (idxs.length > 1 && !spawned) {
-            // Add a new ant at a random position (within -100 to 100)
-            const randX = Math.floor(Math.random() * 201) - 100;
-            const randY = Math.floor(Math.random() * 201) - 100;
+            // Add a new ant at a random position within current spawnRadius
+            const randX = Math.floor(Math.random() * (2 * spawnRadius + 1)) - spawnRadius;
+            const randY = Math.floor(Math.random() * (2 * spawnRadius + 1)) - spawnRadius;
             ants.push({ x: randX, y: randY, dir: randomDir() });
             spawned = true;
+            spawnRadius += 2; // Increase spawn radius slowly
         }
     }
 }
@@ -77,6 +79,7 @@ function stepAnts() {
 function reset() {
     grid.clear();
     ants = [];
+    spawnRadius = 100;
     const count = Math.max(1, Math.min(100, parseInt(antCountInput.value) || 1));
     const centerX = 0;
     const centerY = 0;
