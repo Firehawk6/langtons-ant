@@ -12,9 +12,9 @@ const COLORS = {
         ant: "#00eaff"
     },
     "Minic119's": {
-        bg: "#0a0e1a", // deep space blue-black
-        cell: "#d0d3d6", // starship hull gray
-        ant: "#00ffea" // lightsaber blue-green
+        bg: "#13dcfa", 
+        cell: "#f90018", 
+        ant: "#00ffea"
     }
 };
 let theme = "classic";
